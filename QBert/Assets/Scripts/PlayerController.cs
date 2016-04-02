@@ -4,7 +4,8 @@ using System.Collections;
 /* This script controls the player. Allows the player to be controlled by user with
  * the four arrow keys. Pressing one of the four arrow keys will cause the player
  * to face that direction and either move down onto the next tile in that direction,
- * or to jump up onto the next tile in that direction */
+ * or to jump up onto the next tile in that direction. If player falls off of the
+ * game world, they are respawned at initial position. */
 public class PlayerController : MonoBehaviour 
 {
     // Represent the four movement directions
@@ -15,7 +16,10 @@ public class PlayerController : MonoBehaviour
 
     Vector3 movementDirection;  // Stores the current movement direction
     float forwardMovement;      // Distance one key press moves character in game
-    public float jumpHeight;   
+    public float jumpHeight;
+
+    Vector3 respawnPoint;
+    Quaternion respawnDirection;
 	
 	void Start() 
     {
@@ -30,10 +34,18 @@ public class PlayerController : MonoBehaviour
 
         // Move player distance of one tile in game
         forwardMovement = 1.0f;
+
+        // Store initial position of player as respawn point
+        respawnPoint = transform.position;
+        respawnDirection = SOUTHEAST;
 	}
 	
 	void Update() 
     {
+        // Check if player has fallen off of grid
+        if (transform.position.y < 0)
+            RespawnPlayer();
+
         // Left arrow moves northwest
         if (Input.GetKeyDown(KeyCode.LeftArrow) )
             MovePlayer(NORTHWEST, true);
@@ -62,5 +74,14 @@ public class PlayerController : MonoBehaviour
             transform.Translate(Vector3.up * jumpHeight * Time.deltaTime, Space.World);
         
         transform.position += (movementDirection * forwardMovement);
+    }
+
+    /* Causes player GameObject to repawn at the top of the grid when they fall off
+     of the tiles, as well as lose a life */
+    void RespawnPlayer()
+    {
+        // call to method controlling life/score counts
+        transform.position = respawnPoint;
+        transform.rotation = respawnDirection;
     }
 }
